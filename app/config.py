@@ -5,3 +5,4 @@ class Config:
         'DATABASE_URL', 'sqlite:///app.db'
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    ADMIN_API_KEY = os.environ.get('ADMIN_API_KEY')

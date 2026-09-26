@@ -1,5 +1,5 @@
 import enum
-from datetime import datetime
+from datetime import datetime, timezone
 from app import db
 
 class Workspace(db.Model):
@@ -46,3 +46,10 @@ class Complaint(db.Model):
             nullable=False,
             default=ComplaintStatus.pending
         )
+
+
+class SystemPromptVersion(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    instructions = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False,
+                           default=lambda: datetime.now(timezone.utc))
