@@ -1,0 +1,39 @@
+{
+  "type": "FeatureCollection",
+  "license": "ODbL-1.0",
+  "retrieved": "2026-09-26",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Telecentru",
+        "place": "quarter",
+        "osm_node": 269421400,
+        "source": "https://www.openstreetmap.org/node/269421400"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          28.8112637,
+          46.999408
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Chișinău",
+        "place": "city",
+        "osm_node": 129991407,
+        "source": "https://www.openstreetmap.org/node/129991407"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          28.8322923,
+          47.0245117
+        ]
+      }
+    }
+  ]
+}
