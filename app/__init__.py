@@ -14,6 +14,8 @@ def create_app():
 
     from app import models  # ensure models are registered
     from app.routes import main 
+    from app.chatbot import chatbot
     app.register_blueprint(main)
+    app.register_blueprint(chatbot)
 
     return app
