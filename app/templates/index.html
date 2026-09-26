@@ -1,15 +1,191 @@
 <!DOCTYPE html>
-<html>
+<html lang="ro">
 <head>
-    <title>{% block title %}My App{% endblock %}</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ghid.chișinău — Informația municipală, mai simplă</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <nav>
-        <a href="{{ url_for('main.home') }}">Home</a>
+
+<header class="topbar">
+  <div class="topbar__inner">
+    <a class="brand" href="/">
+      <span class="brand__mark">ghid</span><span class="brand__dot">.</span><span class="brand__city">chișinău</span>
+    </a>
+
+    <nav class="nav">
+      <a class="nav__link nav__link--active" href="#">
+        <svg class="nav__icon" viewBox="0 0 24 24" fill="none"><path d="M4 11.5L12 4l8 7.5M6 10v9h5v-5h2v5h5v-9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Acasă
+      </a>
+      <a class="nav__link" href="#asistent">
+        <svg class="nav__icon" viewBox="0 0 24 24" fill="none"><path d="M4 6h16v10H8l-4 4V6z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+        Asistent
+      </a>
+      <a class="nav__link" href="#ajutor">
+        <svg class="nav__icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M9.5 9.3a2.5 2.5 0 0 1 4.9.7c0 1.6-2.2 1.6-2.4 3.3M12 17h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        Ajutor
+      </a>
     </nav>
 
-    <main>
-        {% block content %}{% endblock %}
-    </main>
+    <div class="topbar__actions">
+      <button class="report-btn" type="button">
+        <span class="report-btn__dot"></span>
+        <svg viewBox="0 0 24 24" fill="none"><path d="M6 3v18M6 4h11l-2.5 4L17 12H6" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+        Raportează o problemă
+      </button>
+      <button class="icon-btn" type="button" aria-label="Accesibilitate">
+        <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="8.3" r="1.4" fill="currentColor"/><path d="M7 11.2c3.4 1 6.6 1 10 0M12 12v6.5M9.3 19.5L12 15l2.7 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </button>
+      <div class="lang-switch">
+        <button class="lang-switch__opt lang-switch__opt--active" type="button">RO</button>
+        <button class="lang-switch__opt" type="button">RU</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="hero">
+  <div class="hero__inner">
+
+    <div class="hero__intro">
+      <h1 class="hero__title">
+        Informația<br>
+        municipală,<br>
+        <span class="hero__title--accent">mai simplă.</span>
+      </h1>
+      <p class="hero__subtitle">
+        Întreabă despre servicii, acte, proceduri și viața orașului.
+        Primești răspunsuri bazate pe documentele oficiale ale Primăriei.
+      </p>
+      <div class="hero__pills">
+        <span class="pill">Întreabă.</span>
+        <span class="pill">Verifică.</span>
+        <span class="pill">Acționează.</span>
+      </div>
+    </div>
+
+    <div class="mapcard">
+      <p class="mapcard__label">Municipiul Chișinău · 5 sectoare</p>
+
+      <div class="mapcard__map" id="cityMap">
+        <svg class="mapcard__compass" viewBox="0 0 24 24" fill="none">
+          <path d="M12 3l3 14-3-3-3 3 3-14z" fill="currentColor"/>
+        </svg>
+        <span class="mapcard__compass-label">N</span>
+
+        {% for s in ['rascani','buiucani','ciocana','centru','botanica'] %}
+        <div class="sector-dots sector-dots--{{ s }}" data-sector="{{ s }}"></div>
+        {% endfor %}
+
+        <span class="sector-label sector-label--rascani" data-sector="rascani">RÂȘCANI</span>
+        <span class="sector-label sector-label--buiucani" data-sector="buiucani">BUIUCANI</span>
+        <span class="sector-label sector-label--ciocana" data-sector="ciocana">CIOCANA</span>
+        <span class="sector-label sector-label--botanica" data-sector="botanica">BOTANICA</span>
+        <button class="sector-pin" type="button" data-sector="centru">CENTRU</button>
+
+        <div class="mapcard__scale">
+          <span class="mapcard__scale-bar"></span>
+          5 km
+        </div>
+      </div>
+
+      <div class="sector-panel" id="sectorPanel">
+        <div class="sector-panel__header">
+          <div>
+            <p class="sector-panel__eyebrow">Sectorul</p>
+            <h2 class="sector-panel__title">{{ sector.label }}</h2>
+          </div>
+          <button class="sector-panel__close" type="button" aria-label="Închide">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+
+        <p class="sector-panel__prompt">Ce te interesează în această zonă?</p>
+
+        <ul class="category-list">
+          {% for c in sector.categories %}
+          <li class="category-list__item">
+            <span class="category-list__icon category-list__icon--{{ c.icon }}">
+              {% if c.icon == 'transport' %}
+              <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="6" width="16" height="10" rx="2.5" stroke="currentColor" stroke-width="1.7"/><path d="M4 12h16M8 20v-2M16 20v-2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="8" cy="16.3" r="0.9" fill="currentColor"/><circle cx="16" cy="16.3" r="0.9" fill="currentColor"/></svg>
+              {% elif c.icon == 'public' %}
+              <svg viewBox="0 0 24 24" fill="none"><path d="M12 4c2 2.5 2 5 0 7-2-2.5-2-4.5 0-7z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 11v9M8 20h8M6 14c2 1 3 2 3 4M18 14c-2 1-3 2-3 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              {% elif c.icon == 'admin' %}
+              <svg viewBox="0 0 24 24" fill="none"><path d="M4 10l8-5 8 5" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M5 10v9M19 10v9M9 19v-6M15 19v-6M3 19h18" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+              {% elif c.icon == 'education' %}
+              <svg viewBox="0 0 24 24" fill="none"><path d="M2 8l10-4 10 4-10 4-10-4z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M6 10.5V15c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5v-4.5M21 8v6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              {% elif c.icon == 'health' %}
+              <svg viewBox="0 0 24 24" fill="none"><path d="M12 4v16M4 12h16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+              {% elif c.icon == 'culture' %}
+              <svg viewBox="0 0 24 24" fill="none"><path d="M4 5h16v10H9l-5 4V5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 9h8M8 12h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              {% elif c.icon == 'social' %}
+              <svg viewBox="0 0 24 24" fill="none"><circle cx="9" cy="8" r="3" stroke="currentColor" stroke-width="1.6"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M15.5 6a3 3 0 0 1 0 5.9M20 20c0-2.8-1.9-5.2-4.5-5.9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+              {% elif c.icon == 'housing' %}
+              <svg viewBox="0 0 24 24" fill="none"><path d="M4 11l8-7 8 7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9h12v-9" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M10 19v-5h4v5" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+              {% endif %}
+            </span>
+            <span class="category-list__name">{{ c.name }}</span>
+            <span class="category-list__count">{{ c.count }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+
+        <a class="sector-panel__link" href="#">
+          Pretura sectorului {{ sector.label }}
+          <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="searchbar">
+    <div class="searchbar__inner">
+      <svg class="searchbar__spark" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.6 5.4L19 10l-5.4 1.6L12 17l-1.6-5.4L5 10l5.4-1.6L12 3z" fill="currentColor"/></svg>
+      <input class="searchbar__input" type="text" placeholder="Întreabă despre Chișinău…" aria-label="Întreabă despre Chișinău">
+      <span class="searchbar__lang">RO · auto</span>
+      <button class="searchbar__mic" type="button" aria-label="Întreabă cu vocea">
+        <svg viewBox="0 0 24 24" fill="none"><rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" stroke-width="1.6"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </button>
+      <button class="searchbar__submit" type="button">
+        Întreabă
+        <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </div>
+</main>
+
+<section class="features">
+  <div class="features__inner">
+
+    <article class="feature-card" id="asistent">
+      <p class="feature-card__eyebrow">Fiecare răspuns cu sursa oficială</p>
+      <h3 class="feature-card__title">Asistentul care îți arată documentul</h3>
+      <p class="feature-card__body">
+        Caută un regulament, o decizie sau un formular. Primești răspunsul,
+        articolul exact și pasajul din document. Dacă informația lipsește
+        sau se contrazice, îți spunem deschis.
+      </p>
+      <a class="feature-card__cta" href="#">Deschide asistentul</a>
+    </article>
+
+    <article class="feature-card feature-card--accent">
+      <p class="feature-card__eyebrow">Nou · în timp real</p>
+      <h3 class="feature-card__title">Raportează o problemă din oraș</h3>
+      <p class="feature-card__body">
+        O groapă, un felinar stins, deșeuri neridicate. Asistentul
+        completează sesizarea și o trimite serviciului responsabil.
+      </p>
+      <a class="feature-card__cta feature-card__cta--solid" href="#">Raportează acum</a>
+    </article>
+
+  </div>
+</section>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
