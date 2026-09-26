@@ -247,12 +247,32 @@ ul { list-style: none; margin: 0; padding: 0; }
   display: inline-block;
 }
 
-/* dot-matrix sector blobs */
+/* square-matrix sector blobs */
 .sector-dots {
   position: absolute;
-  background-image: radial-gradient(circle, var(--dot-color, var(--blue-mist)) 1.4px, transparent 1.6px);
-  background-size: 11px 11px;
+  background-color: var(--dot-color, var(--blue-mist));
+  -webkit-mask-image:
+    repeating-linear-gradient(to right, #000 0 3px, transparent 3px 11px),
+    repeating-linear-gradient(to bottom, #000 0 3px, transparent 3px 11px);
+  -webkit-mask-size: 11px 11px;
+  -webkit-mask-composite: source-in;
+  mask-image:
+    repeating-linear-gradient(to right, #000 0 3px, transparent 3px 11px),
+    repeating-linear-gradient(to bottom, #000 0 3px, transparent 3px 11px);
+  mask-size: 11px 11px;
+  mask-composite: intersect;
   opacity: 0.9;
+  cursor: pointer;
+  transition: transform 0.28s ease, opacity 0.2s ease, mask-size 0.28s ease, -webkit-mask-size 0.28s ease;
+  transform-origin: center;
+}
+
+.sector-dots.is-hovered {
+  --dot-color: var(--blue-bright);
+  -webkit-mask-size: 12.5px 12.5px;
+  mask-size: 12.5px 12.5px;
+  opacity: 1;
+  transform: scale(1.08);
 }
 .sector-dots--rascani {
   --dot-color: #c6dbf7;
