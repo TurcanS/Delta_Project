@@ -3,9 +3,14 @@
 The browser never sees the API key: it calls /api/ask, and this module forwards
 the question with the bearer token from the environment.
 """
+import copy
 import json
 import re
+import threading
 import time
+import unicodedata
+import uuid
+from collections import OrderedDict
 import urllib.error
 import urllib.request
 from datetime import datetime, timezone
@@ -61,9 +66,59 @@ def fix_mixed_script(text):
     return MIXED_WORD.sub(repair, text or '')
 
 
+class AnswerCache:
+    """Recent answers by (question, language), so a question asked again is answered at once.
+
+    The same questions come back often (the examples on the home page, a school enrolment
+    period); each costs the answer service several seconds of inference. Entries expire, the
+    size is bounded, and only successful answers are kept.
+    """
+
+    def __init__(self, size=512, ttl=15 * 60):
+        self.size, self.ttl = size, ttl
+        self.entries = OrderedDict()
+        self.lock = threading.Lock()
+
+    @staticmethod
+    def key(question, language):
+        folded = unicodedata.normalize('NFC', question).lower().replace('ş', 'ș').replace('ţ', 'ț')
+        return language, re.sub(r'[\s?!.]+', ' ', folded).strip()
+
+    def get(self, question, language):
+        key = self.key(question, language)
+        with self.lock:
+            entry = self.entries.get(key)
+            if not entry or time.monotonic() - entry[0] > self.ttl:
+                self.entries.pop(key, None)
+                return None
+            self.entries.move_to_end(key)
+            return copy.deepcopy(entry[1])
+
+    def put(self, question, language, result):
+        with self.lock:
+            self.entries[self.key(question, language)] = (time.monotonic(), copy.deepcopy(result))
+            self.entries.move_to_end(self.key(question, language))
+            while len(self.entries) > self.size:
+                self.entries.popitem(last=False)
+
+
+answers = AnswerCache()
+
+
 def ask_upstream(question, language):
-    """Asks the RAG service and returns the answer in the shape the portal renders."""
+    """Asks the RAG service (or the answer cache) and returns the answer the portal renders."""
     started = time.monotonic()
+    cached = answers.get(question, language)
+    if cached is not None:
+        # A fresh request id keeps feedback on this reply separate from the original one.
+        return {**cached, 'request_id': uuid.uuid4().hex[:16], 'elapsed_ms': round((time.monotonic() - started) * 1000), 'cached': True}
+    result = _ask_service(question, language, started)
+    if result.get('status') in ('answered', 'abstained', 'conflict'):
+        answers.put(question, language, result)
+    return result
+
+
+def _ask_service(question, language, started):
     answer = _rag_request('/v1/ask', {'question': question, 'answer_language': language})
     elapsed = round((time.monotonic() - started) * 1000)
     if 'claims' in answer or 'retrieval' in answer:

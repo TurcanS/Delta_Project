@@ -98,8 +98,10 @@ def list_reports():
     if category in CATEGORIES:
         query = query.where(Complaint.category == category)
     counts = {'reported': 0, 'in_progress': 0, 'solved': 0}
-    for report in db.session.execute(query).scalars():
-        counts[report.public_status] += 1
+    # Counted in SQL: the board must not load every report just to count them.
+    by_status = query.with_only_columns(Complaint.status, db.func.count()).group_by(Complaint.status).order_by(None)
+    for status_value, count in db.session.execute(by_status):
+        counts[{ComplaintStatus.approved: 'in_progress', ComplaintStatus.solved: 'solved'}.get(status_value, 'reported')] += count
     status = request.args.get('status')
     if status == 'reported':
         query = query.where(Complaint.status.in_((ComplaintStatus.sent, ComplaintStatus.pending)))

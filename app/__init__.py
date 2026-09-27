@@ -11,6 +11,8 @@ def create_app():
 
     db.init_app(app)
     migrate.init_app(app, db)
+    from app.platform import init_platform
+    init_platform(app)
 
     from app import models  # ensure models are registered
     from app.routes import main 

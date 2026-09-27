@@ -1,16 +1,11 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import Header from './Header';
 import Features from './Features';
 import CityMap from './CityMap';
 import SectorPanel from './SectorPanel';
 import AskBar from './AskBar';
-import Assistant from './Assistant';
-import ReportDialog from './ReportDialog';
-import Issues from './Issues';
-import Library, { RecentProjects } from './Library';
-import SwipeGame, { SwipeLauncher } from './SwipeGame';
-import Login from './Login';
-import Account from './Account';
+import { RecentProjects } from './LibraryParts';
+import { SwipeLauncher } from './SwipeLauncher';
 import Footer from './Footer';
 import { useAuth } from './auth';
 import { importGuestChat, readGuestChat } from './conversations';
@@ -19,6 +14,16 @@ import { useToast } from './Toast';
 import { useReveal } from './useReveal';
 import { localizeSector } from './localize';
 import { Pin } from './Icons';
+
+// Each page loads its own code on first visit; the home page ships only what it shows.
+const Assistant = lazy(() => import('./Assistant'));
+const ReportDialog = lazy(() => import('./ReportDialog'));
+const Issues = lazy(() => import('./Issues'));
+const Library = lazy(() => import('./Library'));
+const SwipeGame = lazy(() => import('./SwipeGame'));
+const Login = lazy(() => import('./Login'));
+const Account = lazy(() => import('./Account'));
+const PageLoading = () => <div className="page page-loading" aria-busy="true"><span className="loading-indicator" /></div>;
 
 const help = {
   ro: {
@@ -188,11 +193,13 @@ export default function App() {
       <div className={`portal${page === 'assistant' ? ' portal--assistant' : ''}`} onPointerDownCapture={() => { pointerNavigation.current = true; }} onKeyDownCapture={() => { pointerNavigation.current = false; }}>
         <a className="skip-link" href="#main" onClick={skipToContent}>{t.skip}</a>
         <Header route={route.name} onReport={openReport} onLanguage={setLang} />
+        <Suspense fallback={<PageLoading />}>
         {page === 'assistant' && <main id="main" tabIndex={-1} className="page page--wide"><Assistant sectors={sectors} conversationParam={route.id} pendingQuestion={pendingQuestion} onPendingConsumed={() => setPendingQuestion(null)} /></main>}
         {page === 'issues' && <main id="main" tabIndex={-1}><Issues sectors={sectors} version={reportsVersion} onReport={openReport} /></main>}
         {page === 'library' && <main id="main" tabIndex={-1}><Library key={route.search} sectors={sectors} params={new URLSearchParams(route.search)} onAsk={askAssistant} onVote={() => setSwipeOpen(true)} /></main>}
         {page === 'login' && <main id="main" tabIndex={-1}>{ready && !user && <Login />}</main>}
         {page === 'account' && <main id="main" tabIndex={-1}>{ready && user && <Account onLanguage={setLang} />}</main>}
+        </Suspense>
         {page === 'home' && <main id="main" tabIndex={-1}>
           <section className="hero page" aria-labelledby="hero-title">
             <div className="hero__lead">
@@ -230,8 +237,10 @@ export default function App() {
         </main>}
         {page !== 'assistant' && <Footer sectors={sectors} />}
         {page !== 'assistant' && !swipeOpen && <SwipeLauncher onOpen={() => setSwipeOpen(true)} />}
+        <Suspense fallback={null}>
         {swipeOpen && <SwipeGame sectors={sectors} onClose={() => setSwipeOpen(false)} />}
         {reportOpen && sectors.length > 0 && <ReportDialog sectors={sectors} initialSector={reportSector} onClose={closeReport} onPublished={() => setReportsVersion((value) => value + 1)} />}
+        </Suspense>
       </div>
     </LangContext.Provider>
   );

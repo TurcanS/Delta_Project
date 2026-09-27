@@ -208,6 +208,7 @@ main[data-navigation] .account__head { animation: none; }
 .explorer-state p { font-size: 14px; color: var(--ink-soft); }
 .loading-indicator { width: 22px; height: 22px; border: 2px solid var(--line); border-top-color: var(--brand); border-radius: 50%; animation: spin 0.6s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+.page-loading { display: grid; place-items: center; min-height: 50vh; }
 
 /* Ask rail: one long bar under the hero, the gradient button is the page's primary action */
 .askbar__form { display: flex; align-items: center; gap: 12px; padding: 10px 10px 10px 22px; border: 1px solid var(--line); border-radius: var(--r-surface); background: var(--surface); box-shadow: var(--shadow); transition: border-color 160ms ease, box-shadow 200ms ease; }

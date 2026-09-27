@@ -4,21 +4,10 @@ import { DocSearch, External } from './Icons';
 import { useAuth } from './auth';
 import { useLang } from './i18n';
 import { useToast } from './Toast';
-import { LIBRARY_KINDS, formatMoney, libraryHost, libraryStats, refreshLibrary, searchLibrary, splitSnippet } from './library';
+import { LIBRARY_KINDS, libraryHost, libraryStats, refreshLibrary, searchLibrary, splitSnippet } from './library';
+import { Completion } from './LibraryParts';
 
 const shortDate = (iso, lang) => new Date(iso).toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'ro-RO', { day: 'numeric', month: 'short', year: 'numeric' });
-
-// Completion as a thin line, the same language as the problems board: solid when finished.
-function Completion({ value }) {
-  const { t } = useLang();
-  if (value == null) return null;
-  return (
-    <span className={`completion${value >= 100 ? ' is-done' : ''}`}>
-      <span className="completion__line" aria-hidden="true"><span style={{ width: `${Math.min(100, value)}%` }} /></span>
-      {value >= 100 ? t.projectDone : t.projectProgress(value)}
-    </span>
-  );
-}
 
 function Snippet({ text }) {
   return <p className="library-item__snippet">{splitSnippet(text).map((part, index) => (part.mark ? <mark key={index}>{part.text}</mark> : <span key={index}>{part.text}</span>))}</p>;
@@ -193,52 +182,5 @@ export default function Library({ sectors, params, onAsk, onVote }) {
       </p>
       {reading && <DocumentReader item={reading} query={search} onClose={() => setReading(null)} onAsk={onAsk} />}
     </div>
-  );
-}
-
-// Home page: the newest project cards, each opening the project's page on proiecte.chisinau.md.
-export function RecentProjects({ sectors }) {
-  const { lang, t } = useLang();
-  const [items, setItems] = useState(null);
-  useEffect(() => {
-    const controller = new AbortController();
-    searchLibrary({ kind: 'project', limit: 4 }, controller.signal).then((data) => setItems(data.items)).catch(() => setItems([]));
-    return () => controller.abort();
-  }, []);
-  if (!items?.length) return null;
-  return (
-    <section className="recent page" aria-labelledby="recent-title">
-      <header className="explorer__head">
-        <h2 id="recent-title">{t.recentProjects}</h2>
-        <a className="text-action" href="#/documente?kind=project">{t.allProjects}</a>
-      </header>
-      <ul className="recent__list">
-        {items.map((item) => (
-          <li key={item.id} className="recent__item">
-            <a href={item.url} target="_blank" rel="noreferrer">
-              <span className="recent__image">{item.image_url && <img src={item.image_url} alt="" loading="lazy" decoding="async" />}</span>
-              <span className="recent__meta">{[sectors.find((entry) => entry.id === item.sector)?.label, item.category?.split(' / ').pop()].filter(Boolean).join(', ')}</span>
-              <span className="recent__title">{item.title}</span>
-              {item.investment && <span className="recent__money">{item.investment}</span>}
-              <Completion value={item.progress} />
-            </a>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-// Sector panel: how many published projects the sector has, linking to them.
-export function SectorProjects({ sector }) {
-  const { lang, t } = useLang();
-  const [stats, setStats] = useState(null);
-  useEffect(() => { libraryStats().then((data) => setStats(data.sectors?.[sector.id] || null)).catch(() => {}); }, [sector.id]);
-  if (!stats?.projects) return null;
-  return (
-    <a className="sector-projects" href={`#/documente?kind=project&sector=${sector.id}`}>
-      {t.sectorProjects(stats.projects, stats.completed, sector.label)}
-      {stats.investment_mdl > 0 && <span>{t.sectorInvestment(formatMoney(stats.investment_mdl, lang))}</span>}
-    </a>
   );
 }

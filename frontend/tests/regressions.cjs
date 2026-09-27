@@ -9,7 +9,7 @@ const BASE = process.env.PORTAL_TEST_URL || 'http://127.0.0.1:5056';
 const [EMAIL, PASSWORD] = (process.env.PORTAL_EMPLOYEE || 'ana@primaria.md:parola-sigura').split(':');
 const answer = (text, extra = {}) => ({ status: 'answered', answer: text, conflict: null, next_steps: [], request_id: 'r', elapsed_ms: 10, answer_highlights: [], citations: [], ...extra });
 const results = [];
-const check = async (name, fn) => { try { await fn(); results.push(`PASS ${name}`); } catch (error) { results.push(`FAIL ${name}: ${error.message.split('\n')[0]}`); } };
+const check = async (name, fn) => { try { results.push(`${(await fn()) === 'skip' ? 'SKIP' : 'PASS'} ${name}`); } catch (error) { results.push(`FAIL ${name}: ${error.message.split('\n')[0]}`); } };
 
 (async () => {
   const browser = await chromium.launch();
@@ -143,6 +143,8 @@ const check = async (name, fn) => { try { await fn(); results.push(`PASS ${name}
   await check('swipe game records a vote and reports agreement', async () => {
     const page = await fresh();
     await page.goto(BASE);
+    // A fresh database (as in CI) has no crawled projects to vote on.
+    if (!(await page.evaluate(() => fetch('/api/swipe/deck').then((r) => r.json()))).cards.length) return 'skip';
     await page.locator('.swipe-launcher').click();
     await page.locator('.swipe-card.is-top').waitFor();
     const title = await page.locator('.swipe-card.is-top .swipe-card__title').innerText();
@@ -151,9 +153,9 @@ const check = async (name, fn) => { try { await fn(); results.push(`PASS ${name}
     // Skipping right after a vote is queued behind the card still flying off, not dropped.
     await page.locator('.swipe-skip').click();
     await page.waitForFunction(() => /^3 /.test(document.querySelector('.swipe-foot span')?.textContent || ''), null, { timeout: 3000 });
-    const results = await page.evaluate(() => fetch('/api/swipe/results').then((r) => r.json()));
-    const mine = results.items.find((item) => item.title === title);
-    assert.ok(mine && results.mine[String(mine.id)] === 'like', 'the liked project is in the ranking with my vote');
+    const ranking = await page.evaluate(() => fetch('/api/swipe/results').then((r) => r.json()));
+    const mine = ranking.items.find((item) => item.title === title);
+    assert.ok(mine && ranking.mine[String(mine.id)] === 'like', 'the liked project is in the ranking with my vote');
   });
 
   console.log(results.join('\n'));

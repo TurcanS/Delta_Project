@@ -3,7 +3,7 @@ import CategoryIcon from './CategoryIcon';
 import map from './assets/city-map.json';
 import { Close, External } from './Icons';
 import { useLang } from './i18n';
-import { SectorProjects } from './Library';
+import { SectorProjects } from './LibraryParts';
 
 // The sector's own outline, drawn from the same pixel grid as the city map.
 function SectorShape({ id }) {

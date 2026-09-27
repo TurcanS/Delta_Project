@@ -18,7 +18,8 @@ _load_dotenv()
 
 
 class Config:
-    SECRET_KEY = os.environ.get('SECRET_KEY') or os.urandom(32).hex()
+    # Without SECRET_KEY in the environment, app.platform keeps one in the instance folder.
+    SECRET_KEY = os.environ.get('SECRET_KEY')
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
     SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', '').lower() in ('1', 'true')

@@ -10,3 +10,6 @@ docs/
 eval/results/
 instance/tmp/
 instance/feedback.jsonl
+instance/secret_key
+instance/*.db-wal
+instance/*.db-shm

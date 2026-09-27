@@ -728,3 +728,78 @@ class SwipeTests(unittest.TestCase):
         response = self.client.get('/api/swipe/results.csv')
         self.assertEqual(response.status_code, 200)
         self.assertIn('Proiect 0,centru,,1,0,1,100', response.get_data(as_text=True))
+
+
+class PlatformTests(unittest.TestCase):
+    """Production behaviour: shared secret, SQLite settings, JSON errors, headers, caching."""
+    setUp = AccountTests.setUp
+    tearDown = AccountTests.tearDown
+    register = AccountTests.register
+
+    def test_api_errors_are_json(self):
+        self.assertEqual(self.client.get('/api/nothing-here').json, {'error': 'not_found'})
+        self.assertEqual(self.client.delete('/api/sectors').status_code, 405)
+        self.app.config['MAX_CONTENT_LENGTH'] = 1024
+        response = self.client.post('/api/reports', data={'photo': (__import__('io').BytesIO(b'x' * 4096), 'a.jpg')}, content_type='multipart/form-data')
+        self.assertEqual((response.status_code, response.json), (413, {'error': 'too_large'}))
+
+    def test_security_headers_and_asset_caching(self):
+        if not (FRONTEND_DIST / 'index.html').is_file():
+            self.skipTest('frontend not built')
+        page = self.client.get('/')
+        policy = page.headers['Content-Security-Policy']
+        self.assertIn("frame-ancestors 'none'", policy)
+        self.assertIn("'sha256-", policy)  # the inline theme script is allowed by hash, not 'unsafe-inline'
+        self.assertNotIn("script-src 'self' 'unsafe-inline'", policy)
+        self.assertEqual(page.headers['X-Frame-Options'], 'DENY')
+        self.assertEqual(page.headers['Cache-Control'], 'no-cache')
+        asset = next((FRONTEND_DIST / 'assets').glob('*.js')).name
+        response = self.client.get(f'/assets/{asset}', headers={'Accept-Encoding': 'gzip'})
+        self.assertEqual(response.headers['Cache-Control'], 'public, max-age=31536000, immutable')
+        self.assertEqual(response.headers['Content-Encoding'], 'gzip')
+        response.close()
+        page.close()
+
+    def test_health(self):
+        response = self.client.get('/api/health')
+        self.assertEqual((response.status_code, response.json['status'], response.json['database']), (200, 'ok', 'ok'))
+        self.assertIn('Server-Timing', response.headers)
+
+    def test_session_secret_is_shared_by_workers(self):
+        from app.platform import persistent_secret
+        from flask import Flask
+        with patch.dict('os.environ', {}, clear=False):
+            __import__('os').environ.pop('SECRET_KEY', None)
+            first, second = Flask('a', instance_path=self.directory.name), Flask('b', instance_path=self.directory.name)
+            persistent_secret(first)
+            persistent_secret(second)
+        self.assertEqual(first.config['SECRET_KEY'], second.config['SECRET_KEY'])
+        self.assertGreaterEqual(len(first.config['SECRET_KEY']), 64)
+
+    def test_foreign_keys_are_enforced(self):
+        from sqlalchemy import text
+        from app.library import store
+        from app.models import CityDocument, ProjectVote
+        with self.app.app_context():
+            self.assertEqual(db.session.execute(text('PRAGMA foreign_keys')).scalar(), 1)
+            document = store({'url': 'https://p/x', 'kind': 'project', 'source': 'p', 'title': 'X'})
+            db.session.add(ProjectVote(document_id=document.id, voter='v1', value=1))
+            db.session.commit()
+            db.session.execute(db.delete(CityDocument).where(CityDocument.id == document.id))
+            db.session.commit()
+            self.assertEqual(db.session.execute(db.select(db.func.count()).select_from(ProjectVote)).scalar(), 0)
+
+    def test_repeated_questions_come_from_the_cache(self):
+        from app import assistant as assistant_module
+        assistant_module.answers.entries.clear()
+        with patch('app.assistant._rag_request', return_value=CLAIMS_RESPONSE) as upstream:
+            first = self.client.post('/api/ask', json={'question': 'Cât a costat?', 'language': 'ro'}).json
+            again = self.client.post('/api/ask', json={'question': '  cât a costat ', 'language': 'ro'}).json
+            self.client.post('/api/ask', json={'question': 'Cât a costat?', 'language': 'ru'})
+        self.assertEqual(upstream.call_count, 2)  # the Russian question is a different answer
+        self.assertTrue(again['cached'])
+        self.assertEqual(again['answer'], first['answer'])
+        self.assertNotEqual(again['request_id'], first['request_id'])
+        with patch('app.assistant._rag_request', side_effect=__import__('urllib.error').error.URLError('down')):
+            self.assertEqual(self.client.post('/api/ask', json={'question': 'Altă întrebare', 'language': 'ro'}).status_code, 503)
+        self.assertIsNone(assistant_module.answers.get('Altă întrebare', 'ro'))
