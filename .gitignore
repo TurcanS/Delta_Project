@@ -4,6 +4,7 @@ __pycache__/
 .env
 node_modules/
 frontend/dist/
+SETUP.md
 .firecrawl/
 instance/uploads/
 docs/
@@ -13,3 +14,4 @@ instance/feedback.jsonl
 instance/secret_key
 instance/*.db-wal
 instance/*.db-shm
+instance/portal-local.db

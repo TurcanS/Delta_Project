@@ -29,6 +29,8 @@ Municipal information assistant for Chișinău City Hall. It answers citizens' a
 
 ## Run locally
 
+For a short infrastructure overview and setup on another computer, see [SETUP.md](SETUP.md). It includes Docker commands, manual development setup, and [.env.example](.env.example).
+
 ```bash
 python -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/flask --app run db upgrade
