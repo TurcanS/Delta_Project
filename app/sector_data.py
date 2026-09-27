@@ -1,68 +1,91 @@
 """Curated navigation topics, not live service counts or generated answers."""
 
+CATEGORIES_RU = {
+    'transport': {'name': 'Транспорт', 'description': 'Информация об общественном транспорте, маршрутах, остановках и движении в городе.', 'topics': ['Маршруты и остановки', 'Проездные', 'Движение и парковки']},
+    'public': {'name': 'Общественные пространства', 'description': 'Куда обращаться по вопросам парков, уличного освещения, уборки и благоустройства района.', 'topics': ['Парки и зелёные зоны', 'Уличное освещение', 'Уборка']},
+    'admin': {'name': 'Администрация', 'description': 'Сведения претуры о приёмах, петициях, документах и публичных объявлениях.', 'topics': ['Петиции и обращения', 'Приём граждан', 'Документы и формы']},
+    'education': {'name': 'Образование', 'description': 'Муниципальные источники о детских садах, школах и образовательных мероприятиях.', 'topics': ['Детские сады', 'Школы', 'Занятия для детей']},
+    'health': {'name': 'Здравоохранение', 'description': 'Публичная информация о медицинских учреждениях и муниципальных услугах здравоохранения.', 'topics': ['Медицинские учреждения', 'Муниципальные услуги', 'Контактная информация']},
+    'culture': {'name': 'Культура и досуг', 'description': 'Объявления о местных событиях, библиотеках и культурных мероприятиях.', 'topics': ['События', 'Библиотеки', 'Культурные мероприятия']},
+    'social': {'name': 'Социальная помощь', 'description': 'Официальные источники о социальных услугах, поддержке и ответственных учреждениях.', 'topics': ['Социальные услуги', 'Поддержка семей', 'Ответственные учреждения']},
+    'housing': {'name': 'Жильё и коммунальные услуги', 'description': 'Отправная точка для вопросов о жилье, управлении домом и коммунальных услугах.', 'topics': ['Управление домом', 'Вода и канализация', 'Отопление и услуги']},
+}
+
 CATEGORIES = [
     {
         'name': 'Transport', 'icon': 'transport',
-        'description': 'Găsește informații despre transportul public, rute, stații și circulația în oraș.',
+        'description': 'Găsiți informații despre transportul public, rute, stații și circulația în oraș.',
         'topics': ['Rute și stații', 'Abonamente', 'Circulație și parcări'],
         'keywords': 'autobuz troleibuz transport rute statii abonamente circulatie parcari parcare',
     },
     {
         'name': 'Spații publice', 'icon': 'public',
-        'description': 'Află cui te poți adresa pentru parcuri, iluminat stradal, curățenie și amenajarea cartierului.',
+        'description': 'Aflați cui vă puteți adresa pentru parcuri, iluminat stradal, curățenie și amenajarea cartierului.',
         'topics': ['Parcuri și spații verzi', 'Iluminat stradal', 'Curățenie'],
         'keywords': 'parc copaci spatii verzi iluminat felinar strada curatenie deseuri gunoi groapa trotuar',
     },
     {
         'name': 'Administrație', 'icon': 'admin',
-        'description': 'Consultă informațiile preturii despre audiențe, petiții, documente și anunțuri publice.',
+        'description': 'Consultați informațiile preturii despre audiențe, petiții, documente și anunțuri publice.',
         'topics': ['Petiții și sesizări', 'Audiențe', 'Acte și formulare'],
         'keywords': 'administratie primarie pretura petitie sesizare audienta acte documente formular cerere program contact',
     },
     {
         'name': 'Educație', 'icon': 'education',
-        'description': 'Pornește de la sursele municipale pentru informații despre grădinițe, școli și activități educaționale.',
+        'description': 'Porniți de la sursele municipale pentru informații despre grădinițe, școli și activități educaționale.',
         'topics': ['Grădinițe', 'Școli', 'Activități pentru copii'],
         'keywords': 'educatie gradinita scoala scoli inscriere copil copii elev liceu',
     },
     {
         'name': 'Sănătate', 'icon': 'health',
-        'description': 'Caută informații publice despre instituțiile medicale și serviciile municipale de sănătate.',
+        'description': 'Căutați informații publice despre instituțiile medicale și serviciile municipale de sănătate.',
         'topics': ['Instituții medicale', 'Servicii municipale', 'Informații de contact'],
         'keywords': 'sanatate medic policlinica spital medical clinica',
     },
     {
         'name': 'Cultură și divertisment', 'icon': 'culture',
-        'description': 'Descoperă anunțurile despre evenimente locale, biblioteci și activități culturale.',
+        'description': 'Descoperiți anunțurile despre evenimente locale, biblioteci și activități culturale.',
         'topics': ['Evenimente', 'Biblioteci', 'Activități culturale'],
         'keywords': 'cultura divertisment eveniment biblioteca concert teatru festival muzeu',
     },
     {
         'name': 'Asistență socială', 'icon': 'social',
-        'description': 'Consultă sursele oficiale pentru servicii sociale, sprijin comunitar și instituțiile responsabile.',
+        'description': 'Consultați sursele oficiale pentru servicii sociale, sprijin comunitar și instituțiile responsabile.',
         'topics': ['Servicii sociale', 'Sprijin pentru familii', 'Instituții responsabile'],
         'keywords': 'asistenta social ajutor sprijin familie pensionar dizabilitate indemnizatie',
     },
     {
         'name': 'Locuințe și utilități', 'icon': 'housing',
-        'description': 'Găsește punctul de pornire pentru întrebări despre locuințe, administrarea blocului și utilități.',
+        'description': 'Găsiți punctul de pornire pentru întrebări despre locuințe, administrarea blocului și utilități.',
         'topics': ['Administrarea blocului', 'Apă și canalizare', 'Încălzire și utilități'],
         'keywords': 'locuinta locuinte utilitati bloc apa canalizare incalzire termoficare asociatie locatari',
     },
 ]
 
+for category in CATEGORIES:
+    category['ru'] = CATEGORIES_RU[category['icon']]
+
 # Links are public official websites. No invented local inventories or counts.
+SECTOR_RU = {
+    'centru': ('Центр', 'От центра города до Телецентра. Выберите раздел и изучите источники по вашему сектору.'),
+    'buiucani': ('Буюкань', 'Услуги, повседневные вопросы и местная информация для жителей сектора Буюкань.'),
+    'botanica': ('Ботаника', 'Отправная точка для публичных услуг и вопросов жителей сектора Ботаника.'),
+    'ciocana': ('Чокана', 'Разделы и публичная информация для сектора Чокана.'),
+    'rascani': ('Рышкань', 'Местная информация и источники для вопросов жителей сектора Рышкань.'),
+}
+
 SECTOR_INFO = {
-    'centru': ('Centru', 'De la centrul orașului la Telecentru. Alege un domeniu și consultă sursele pentru sectorul tău.', 'https://chisinaucentru.md/'),
+    'centru': ('Centru', 'De la centrul orașului la Telecentru. Alegeți un domeniu și consultați sursele pentru sectorul dumneavoastră.', 'https://chisinaucentru.md/'),
     'buiucani': ('Buiucani', 'Servicii, întrebări de zi cu zi și informații locale pentru locuitorii sectorului Buiucani.', 'https://preturabuiucani.md/'),
     'botanica': ('Botanica', 'Un punct de pornire pentru serviciile publice și întrebările locuitorilor sectorului Botanica.', 'https://botanica.md/'),
-    'ciocana': ('Ciocana', 'Explorează domeniile de interes și informațiile publice pentru sectorul Ciocana.', 'https://ciocana.md/'),
+    'ciocana': ('Ciocana', 'Explorați domeniile de interes și informațiile publice pentru sectorul Ciocana.', 'https://ciocana.md/'),
     'rascani': ('Râșcani', 'Informații și surse locale pentru întrebările locuitorilor sectorului Râșcani.', 'https://rascani.md/'),
 }
 
 SECTORS = {
     sector_id: {'id': sector_id, 'label': label, 'description': description,
-                'website': website, 'categories': CATEGORIES}
+                'website': website, 'categories': CATEGORIES,
+                'ru': {'label': SECTOR_RU[sector_id][0], 'description': SECTOR_RU[sector_id][1]}}
     for sector_id, (label, description, website) in SECTOR_INFO.items()
 }
 

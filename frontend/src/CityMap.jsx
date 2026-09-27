@@ -1,17 +1,22 @@
 import map from './assets/city-map.json';
+import { useLang } from './i18n';
 
-const labels = { rascani: 'RÂȘCANI', buiucani: 'BUIUCANI', ciocana: 'CIOCANA', botanica: 'BOTANICA', centru: 'CENTRU' };
+const labels = {
+  ro: { rascani: 'RÂȘCANI', buiucani: 'BUIUCANI', ciocana: 'CIOCANA', botanica: 'BOTANICA', centru: 'CENTRU' },
+  ru: { rascani: 'РЫШКАНЬ', buiucani: 'БУЮКАНЬ', ciocana: 'ЧОКАНА', botanica: 'БОТАНИКА', centru: 'ЦЕНТР' },
+};
 const position = ([x, y]) => ({ left: `${x / map.width * 100}%`, top: `${y / map.height * 100}%` });
 
 export default function CityMap({ selected, panelOpen, onSelect }) {
+  const { lang, t } = useLang();
   return (
-    <div className="mapcard__map" id="cityMap" aria-label="Harta sectoarelor orașului Chișinău">
+    <div className="mapcard__map" id="cityMap" aria-label={t.mapLabel}>
       <div className="mapcard__north" aria-hidden="true">↑<span>N</span></div>
       <svg className="city-map" viewBox={`0 0 ${map.width} ${map.height}`} aria-hidden="true">
         {map.sectors.map((sector) => (
           <g key={sector.id} className={`sector-dots sector-dots--${sector.id}${selected === sector.id ? ' is-selected' : ''}`} data-sector={sector.id} onClick={() => onSelect(sector.id)}>
             <path className="sector-boundary" d={sector.path} fillRule="evenodd" />
-            {sector.dots.map(([x, y]) => <circle key={`${x}-${y}`} cx={x} cy={y} r="1.25" />)}
+            {sector.dots.map(([x, y]) => <rect key={`${x}-${y}`} x={x - 1.5} y={y - 1.5} width="3" height="3" rx="0.8" />)}
           </g>
         ))}
         <g className="map-scale" transform="translate(16 279)">
@@ -19,10 +24,10 @@ export default function CityMap({ selected, panelOpen, onSelect }) {
         </g>
       </svg>
       {map.sectors.map((sector) => (
-        <button key={sector.id} className={`sector-label sector-label--${sector.id}${selected === sector.id ? ' is-selected' : ''}`} data-sector={sector.id} style={position(sector.label)} onClick={() => onSelect(sector.id)} aria-label={`Explorează sectorul ${labels[sector.id]}`} aria-pressed={selected === sector.id && panelOpen} aria-controls="sectorPanel" type="button">{labels[sector.id]}</button>
+        <button key={sector.id} className={`sector-label sector-label--${sector.id}${selected === sector.id ? ' is-selected' : ''}`} data-sector={sector.id} style={position(sector.label)} onClick={() => onSelect(sector.id)} aria-label={t.exploreSectorAria(labels[lang][sector.id])} aria-pressed={selected === sector.id && panelOpen} aria-controls="sectorPanel" type="button">{labels[lang][sector.id]}</button>
       ))}
       {map.neighborhoods.map((neighborhood) => (
-        <button key={neighborhood.name} className="neighborhood-marker" type="button" aria-label="Telecentru, cartier în sectorul Centru" style={position(neighborhood.position)} onClick={() => onSelect(neighborhood.sector)} aria-controls="sectorPanel">
+        <button key={neighborhood.name} className="neighborhood-marker" type="button" aria-label={t.neighborhoodAria(neighborhood.name, lang === 'ru' ? 'Центр' : 'Centru')} style={position(neighborhood.position)} onClick={() => onSelect(neighborhood.sector)} aria-controls="sectorPanel">
           <span className="neighborhood-label">{neighborhood.name}</span>
         </button>
       ))}

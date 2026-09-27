@@ -32,32 +32,65 @@ const assert = require('node:assert/strict');
     await page.locator('.sector-label[data-sector="rascani"]').focus();
     await page.keyboard.press('Enter');
     assert.equal(await page.locator('#sector-title').innerText(), 'Râșcani');
-    const circle = await page.locator('.sector-dots--ciocana circle').nth(40).boundingBox();
+    // The map sits below the question box; bring it into view before clicking by coordinates.
+    await page.locator('.mapcard__map').scrollIntoViewIfNeeded();
+    const circle = await page.locator('.sector-dots--ciocana rect').nth(40).boundingBox();
     await page.mouse.click(circle.x + circle.width / 2, circle.y + circle.height / 2);
     assert.equal(await page.locator('#sector-title').innerText(), 'Ciocana');
     await page.getByRole('button', { name: 'Telecentru, cartier în sectorul Centru' }).click();
     assert.equal(await page.locator('#sector-title').innerText(), 'Centru');
-    await page.locator('.search-suggestions').getByRole('button', { name: 'Grădinițe' }).click();
-    assert.match(await page.locator('.search-results').innerText(), /Educație/);
-    await page.locator('#question').fill('xyzqzz');
-    await page.locator('.searchbar__submit').click();
-    assert.equal(await page.locator('.empty-search').isVisible(), true);
-    await page.getByRole('button', { name: 'Șterge căutarea ×' }).click();
+    // Assistant: mocked API so the flow is deterministic.
+    const mockAnswer = { status: 'answered', answer: 'S-a investit 9 300 000 MDL.', conflict: null, next_steps: [], request_id: 'test', elapsed_ms: 1200,
+      answer_highlights: [{ start: 13, end: 26, text: '9 300 000 MDL', sources: [{ chunk_id: 'c1', start: 29, end: 42 }] }],
+      citations: [{ document_id: 'd1', chunk_id: 'c1', title: 'Extinderea Grădiniței Nr. 125', url: 'https://proiecte.chisinau.md/ro/pv-1311', section: 'Auto chunk 1', language: 'ro', text: 'Investiția totală din buget: 9 300 000 MDL pentru grădinița din sectorul Centru.', highlights: [{ start: 0, end: 10, matches: ['answer_evidence'] }] }] };
+    let feedback = null;
+    await page.route('**/api/ask', route => route.fulfill({ json: JSON.parse(route.request().postData()).question.includes('Paris') ? { ...mockAnswer, status: 'abstained', answer: 'Nu am găsit această informație în documentele selectate.', citations: [], answer_highlights: [] } : mockAnswer }));
+    await page.route('**/api/feedback', route => { feedback = JSON.parse(route.request().postData()); route.fulfill({ status: 201, json: { ok: true } }); });
+    await page.locator('#question').fill('Cât s-a investit în Grădinița nr. 125?');
+    await page.locator('.askbar .ask-button').click();
+    await page.locator('.answer--answered').waitFor();
+    assert.equal(await page.locator('.nav__link--active').innerText(), 'Asistent');
+    await page.locator('.grounded').first().click();
+    assert.equal(await page.locator('.viewer mark.is-focus').innerText(), '9 300 000 MDL');
+    assert.equal(await page.locator('#viewer-title').innerText(), 'Extinderea Grădiniței Nr. 125');
+    await page.locator('.answer').getByRole('button', { name: 'Da' }).click();
+    await page.getByText('Mulțumim.', { exact: false }).waitFor();
+    assert.equal(feedback.rating, 'up');
+    await page.locator('#assistant-question').fill('Cât costă un bilet spre Paris în sectorul Botanica?');
+    await page.keyboard.press('Enter');
+    await page.locator('.answer--abstained').waitFor();
+    assert.match(await page.locator('.answer--abstained .contact-route').innerText(), /Pretura sectorului Botanica/);
+    await page.getByRole('button', { name: 'RU', exact: true }).click();
+    assert.equal(await page.locator('#assistant-title').innerText(), 'Муниципальный ассистент');
+    assert.equal(await page.evaluate(() => document.documentElement.lang), 'ru');
+    await page.getByRole('button', { name: 'RO', exact: true }).click();
+    await page.locator('.nav').getByRole('link', { name: 'Acasă' }).click();
+    await page.locator('#sector-title').waitFor();
     await page.locator('.topbar').getByRole('button', { name: 'Raportează o problemă', exact: true }).click();
     await page.locator('dialog[open]').waitFor();
     await page.waitForTimeout(150);
     assert.equal(await page.locator('dialog[open]').count(), 1);
-    await page.getByLabel('Subiect', { exact: true }).fill('Felinar stins');
-    await page.getByLabel('Ce ai observat?').fill('Iluminatul nu funcționează pe strada de test.');
+    // Photo report: validation first, then a mocked publish so the smoke run never writes to the board.
+    await page.route('**/api/reports', (route) => route.request().method() !== 'POST' ? route.continue() : route.fulfill({
+      status: 201, contentType: 'application/json',
+      body: JSON.stringify({ id: 999, title: 'Felinar stins', description: 'Iluminatul nu funcționează pe strada de test.', address: 'str. Test 1', sector: 'centru', category: 'lighting', status: 'reported', confirmations: 1, confirmed: true, photo: '/api/reports/photos/demo-lamp-verhorechye.jpg', after_photo: null, created_at: new Date().toISOString() }),
+    }));
+    await page.getByRole('button', { name: 'Publică sesizarea' }).click();
+    assert.equal(await page.locator('.field-error').count() >= 3, true);
+    await page.locator('#report-photo').setInputFiles(require('node:path').join(__dirname, '../../app/seed/reports/lamp-verhorechye.jpg'));
+    await page.locator('.photo-field > img').waitFor();
+    await page.locator('.category-chip', { hasText: 'Iluminat stradal' }).click();
+    await page.getByLabel('Numiți problema').fill('Felinar stins');
+    await page.getByLabel('Descriere').fill('Iluminatul nu funcționează pe strada de test.');
+    await page.getByRole('button', { name: 'Publică sesizarea' }).click();
+    await page.locator('.report-success').waitFor();
     await page.getByRole('button', { name: 'Copiază textul' }).click();
     await page.getByText('Textul a fost copiat.', { exact: false }).waitFor();
     assert.match(await page.evaluate(() => navigator.clipboard.readText()), /Felinar stins/);
+    await page.unroute('**/api/reports');
     await page.keyboard.press('Escape');
     await page.locator('dialog').waitFor({ state: 'detached' });
     await page.waitForFunction(() => document.activeElement?.classList.contains('report-btn'));
-    await page.getByRole('button', { name: 'Contrast sporit' }).click();
-    assert.equal(await page.locator('.portal--contrast').count(), 1);
-    await page.getByRole('button', { name: 'Contrast sporit' }).click();
     await page.locator('.help-questions summary').first().click();
     assert.equal(await page.locator('.help-questions details[open]').count(), 1);
     await page.locator('.help-questions summary').first().click();
@@ -82,6 +115,6 @@ const assert = require('node:assert/strict');
     await failurePage.getByRole('button', { name: 'Încearcă din nou' }).click();
     await failurePage.locator('#sector-title').waitFor();
     assert.deepEqual(errors, []);
-    console.log('PASS: five sectors, polygon/keyboard/Telecentru selection, category details, contacts, close/reopen, search/empty state, report copy/Escape, contrast, help, 5 viewport widths, API retry, no JS errors.');
+    console.log('PASS: five sectors, polygon/keyboard/Telecentru selection, category details, contacts, close/reopen, assistant answer/source/feedback/abstain routing/RU, photo report validate/publish/copy/Escape, help, 5 viewport widths, API retry, no JS errors.');
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exit(1); });

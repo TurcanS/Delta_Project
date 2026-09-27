@@ -5,3 +5,8 @@ __pycache__/
 node_modules/
 frontend/dist/
 .firecrawl/
+instance/uploads/
+docs/
+eval/results/
+instance/tmp/
+instance/feedback.jsonl

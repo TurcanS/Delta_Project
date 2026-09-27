@@ -1,38 +1,94 @@
-export default function Header({ onReport, highContrast, onToggleContrast }) {
+import { useEffect, useRef, useState } from 'react';
+import { useAuth } from './auth';
+import { useLang } from './i18n';
+import { useToast } from './Toast';
+import Logo from './Logo';
+import { Camera, Chat, DocumentIcon, Grid, Help, Home, Moon, Sun } from './Icons';
+import { useTheme } from './theme';
+
+export default function Header({ route, onReport, onLanguage }) {
+  const { lang, t } = useLang();
+  const { user, logout } = useAuth();
+  const notify = useToast();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [theme, toggleTheme] = useTheme();
+  const menu = useRef(null);
+  const links = [
+    ['home', '#/', t.navHome, <Home key="h" />],
+    ['assistant', '#/asistent', t.navAssistant, <Chat key="c" />],
+    ['issues', '#/probleme', t.navIssues, <Grid key="g" />],
+    ['library', '#/documente', t.navLibrary, <DocumentIcon key="d" />],
+    ['help', '#/ajutor', t.navHelp, <Help key="q" />],
+  ];
+
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    const close = (event) => { if (!menu.current?.contains(event.target)) setMenuOpen(false); };
+    const onKey = (event) => { if (event.key === 'Escape') { setMenuOpen(false); menu.current?.querySelector('button')?.focus(); } };
+    document.addEventListener('pointerdown', close);
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('pointerdown', close); document.removeEventListener('keydown', onKey); };
+  }, [menuOpen]);
+
+  useEffect(() => setMenuOpen(false), [route]);
+
+  async function signOut() {
+    setMenuOpen(false);
+    try {
+      await logout();
+    } catch {
+      notify(t.signOutFailed, 'error');
+      return;
+    }
+    notify(t.signedOut);
+    window.location.hash = '#/';
+  }
+
+  const initials = (user?.full_name || '').split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
+
   return (
-<header className="topbar">
-  <div className="topbar__inner">
-    <a className="brand" href="/">
-      <span className="brand__mark">Portalul </span><span className="brand__city">Cetățeanului</span>
-    </a>
-
-    <nav className="nav" aria-label="Navigație principală">
-      <a className="nav__link nav__link--active" href="#">
-        <svg className="nav__icon" viewBox="0 0 24 24" fill="none"><path d="M4 11.5L12 4l8 7.5M6 10v9h5v-5h2v5h5v-9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-        Acasă
-      </a>
-      <a className="nav__link" href="#intreaba">
-        <svg className="nav__icon" viewBox="0 0 24 24" fill="none"><path d="M4 6h16v10H8l-4 4V6z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/></svg>
-        Servicii
-      </a>
-      <a className="nav__link" href="#ajutor">
-        <svg className="nav__icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8"/><path d="M9.5 9.3a2.5 2.5 0 0 1 4.9.7c0 1.6-2.2 1.6-2.4 3.3M12 17h.01" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
-        Ajutor
-      </a>
-    </nav>
-
-    <div className="topbar__actions">
-      <button className="report-btn" aria-label="Raportează o problemă" type="button" onClick={onReport}>
-        <span className="report-btn__dot"></span>
-        <svg viewBox="0 0 24 24" fill="none"><path d="M6 3v18M6 4h11l-2.5 4L17 12H6" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/></svg>
-        <span className="report-btn__text">Raportează o problemă</span>
-      </button>
-      <button className="icon-btn" type="button" aria-label="Contrast sporit" title="Activează sau dezactivează contrastul sporit" aria-pressed={highContrast} onClick={onToggleContrast}>
-        <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.6"/><circle cx="12" cy="8.3" r="1.4" fill="currentColor"/><path d="M7 11.2c3.4 1 6.6 1 10 0M12 12v6.5M9.3 19.5L12 15l2.7 4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg>
-      </button>
-      <span className="language-label" lang="ro" title="Limba română">RO</span>
-    </div>
-  </div>
-</header>
+    <header className="topbar">
+      <div className="topbar__inner">
+        <a className="brand" href="#/" aria-label={t.homeLabel}><Logo /></a>
+        <nav className="nav" aria-label={t.navLabel}>
+          {links.map(([id, href, label, icon]) => (
+            <a key={id} className={`nav__link${route === id ? ' nav__link--active' : ''}`} href={href} aria-current={route === id ? 'page' : undefined}>{icon}<span>{label}</span></a>
+          ))}
+        </nav>
+        <div className="topbar__actions">
+          <button className="report-btn" type="button" onClick={onReport} aria-label={t.report}>
+            <Camera />
+            <span className="report-btn__text">{t.report}</span>
+          </button>
+          <button className="theme-toggle" type="button" onClick={toggleTheme} aria-label={theme === 'dark' ? t.themeToLight : t.themeToDark} title={theme === 'dark' ? t.themeToLight : t.themeToDark}>
+            {theme === 'dark' ? <Sun /> : <Moon />}
+          </button>
+          <div className="lang-switch" role="group" aria-label={t.langLabel}>
+            {['ro', 'ru'].map((code) => <button key={code} type="button" lang={code} aria-pressed={lang === code} onClick={() => onLanguage(code)}>{code.toUpperCase()}</button>)}
+          </div>
+          {user ? (
+            <div className="account-menu" ref={menu}>
+              <button className="account-menu__trigger" type="button" aria-expanded={menuOpen} aria-haspopup="menu" onClick={() => setMenuOpen((open) => !open)}>
+                <span className="avatar" aria-hidden="true">{initials || '·'}</span>
+                <span className="account-menu__name">{user.full_name}</span>
+                <span className="account-menu__chevron" aria-hidden="true" />
+              </button>
+              {menuOpen && (
+                <div className="account-menu__panel" role="menu">
+                  <div className="account-menu__who"><strong>{user.full_name}</strong><span>{user.email}</span><span className="role-chip">{t.roleLabel[user.role]}</span></div>
+                  <a role="menuitem" href="#/cont">{t.account}</a>
+                  <button role="menuitem" type="button" onClick={signOut}>{t.signOut}</button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <a className={`signin-link${route === 'login' ? ' is-current' : ''}`} href="#/autentificare">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5" stroke="currentColor" strokeWidth="1.6" /><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
+              {t.signIn}
+            </a>
+          )}
+        </div>
+      </div>
+    </header>
   );
 }

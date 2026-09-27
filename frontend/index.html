@@ -3,10 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Portalul Cetățeanului — Informația municipală, mai simplă</title>
+<meta name="description" content="Portalul Cetățeanului: asistentul municipal al Chișinăului. Răspunsuri în română și rusă din documentele oficiale ale Primăriei, cu sursa exactă.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2048%2048%22%3E%3Crect%20width%3D%2248%22%20height%3D%2248%22%20rx%3D%2211%22%20fill%3D%22%230b3a73%22/%3E%3Cpath%20d%3D%22M15%2010h14l6%206v18a2%202%200%200%201-2%202H21l-6%205v-5a2%202%200%200%201-2-2V12a2%202%200%200%201%202-2Z%22%20fill%3D%22%23fff%22/%3E%3Cpath%20d%3D%22M29%2010l6%206h-4a2%202%200%200%201-2-2v-4Z%22%20fill%3D%22%23c7d4e8%22/%3E%3Crect%20x%3D%2216%22%20y%3D%2223.5%22%20width%3D%2216%22%20height%3D%225%22%20rx%3D%221.2%22%20fill%3D%22%23ffd84a%22/%3E%3Crect%20x%3D%2217.5%22%20y%3D%2224.75%22%20width%3D%2210%22%20height%3D%222.5%22%20rx%3D%221.25%22%20fill%3D%22%230b3a73%22/%3E%3Crect%20x%3D%2217.5%22%20y%3D%2218.5%22%20width%3D%2213%22%20height%3D%222.5%22%20rx%3D%221.25%22%20fill%3D%22%239fb2cc%22/%3E%3Crect%20x%3D%2217.5%22%20y%3D%2231%22%20width%3D%228%22%20height%3D%222.5%22%20rx%3D%221.25%22%20fill%3D%22%239fb2cc%22/%3E%3C/svg%3E">
+<title>Portalul Cetățeanului: asistentul municipal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Serif:wght@400;500;600&family=Onest:wght@400;500;600;700&family=Oswald:wght@500;600&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#e3efff">
+<script>
+  // Resolve the theme before the first paint so a dark-mode visitor never sees a light flash.
+  (function () {
+    var stored = null;
+    try { stored = localStorage.getItem('theme'); } catch (e) {}
+    var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+    document.querySelector('meta[name=theme-color]').content = dark ? '#060d20' : '#e3efff';
+  })();
+</script>
 </head>
 <body>
   <div id="root"></div>

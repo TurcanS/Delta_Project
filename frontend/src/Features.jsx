@@ -1,23 +1,30 @@
-import { Arrow } from './Icons';
+import { useLang } from './i18n';
+import { Camera } from './Icons';
 
 export default function Features({ onReport }) {
+  const { t } = useLang();
   return (
-    <section className="features" aria-label="Cum te putem ajuta">
-      <div className="features__inner">
-        <article className="feature-card feature-card--assistant">
-          <p className="feature-card__eyebrow"><span className="feature-number">01 / INFORMEAZĂ-TE</span>Direct la sursă</p>
-          <h2 className="feature-card__title">Mai puține căutări.<br />Un punct de pornire clar.</h2>
-          <p className="feature-card__body">De la înscrierea la grădiniță până la o audiență la pretură. Explorează serviciile și consultă informațiile instituției responsabile.</p>
-          <a className="feature-card__cta" href="#intreaba">Explorează serviciile<Arrow /></a>
-          <span className="feature-decoration" aria-hidden="true">↗</span>
-        </article>
-        <article className="feature-card" id="raporteaza">
-          <p className="feature-card__eyebrow"><span className="feature-number">02 / IMPLICĂ-TE</span>Începe cu strada ta</p>
-          <h2 className="feature-card__title">Un oraș mai bun începe<br />cu o problemă semnalată.</h2>
-          <p className="feature-card__body">Un felinar stins, un trotuar deteriorat, deșeuri neridicate. Pregătește o sesizare și află unde o poți trimite.</p>
-          <button className="feature-card__cta" type="button" onClick={onReport}>Pregătește o sesizare<Arrow /></button>
-        </article>
-      </div>
+    <section className="features page" aria-label={t.navAssistant} data-reveal>
+      <article className="feature-card feature-card--assistant">
+        <h2 className="feature-card__title">{t.featureAssistantTitle}</h2>
+        <p className="feature-card__body">{t.featureAssistantBody}</p>
+        <figure className="excerpt" lang="ro">
+          <blockquote>Investiția totală din buget: <mark>9 300 000 MDL</mark> pentru grădinița din sectorul Centru.</blockquote>
+          <figcaption>{t.featureExcerptSource}: Extinderea Grădiniței nr. 125</figcaption>
+        </figure>
+        <a className="feature-card__cta" href="#/asistent">{t.featureAssistantCta}</a>
+      </article>
+      <article className="feature-card" id="raporteaza">
+        <h2 className="feature-card__title">{t.featureReportTitle}</h2>
+        <p className="feature-card__body">{t.featureReportBody}</p>
+        <ol className="feature-steps">
+          {t.reportSteps.map((step) => <li key={step}>{step}</li>)}
+        </ol>
+        <div className="feature-card__ctas">
+          <button className="feature-card__cta" type="button" onClick={onReport}><Camera />{t.featureReportCta}</button>
+          <a className="text-action" href="#/probleme">{t.featureReportBoard}</a>
+        </div>
+      </article>
     </section>
   );
 }
