@@ -6,7 +6,6 @@ node_modules/
 frontend/dist/
 SETUP.md
 .firecrawl/
-instance/uploads/
 docs/
 eval/results/
 instance/tmp/
