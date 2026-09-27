@@ -234,3 +234,10 @@ class ProjectVote(db.Model):
     value = db.Column(db.SmallInteger, nullable=False)  # 1 like, -1 dislike
     user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'), nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+
+
+class SystemPromptVersion(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    instructions = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False,
+                           default=lambda: datetime.now(timezone.utc))

@@ -28,6 +28,7 @@ class Config:
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     MAX_CONTENT_LENGTH = 10 * 1024 * 1024  # one report photo plus its text
-    RAG_API_URL = os.environ.get('RAG_API_URL', 'http://158.158.8.113:8000')
+    RAG_API_URL = os.environ.get('RAG_API_URL', 'http://68.221.26.86:8000')
     RAG_API_KEY = os.environ.get('RAG_API_KEY', '')
     RAG_ADMIN_KEY = os.environ.get('RAG_ADMIN_KEY', '')
+    ADMIN_API_KEY = os.environ.get('ADMIN_API_KEY')

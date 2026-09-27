@@ -14,6 +14,7 @@ def create_app():
 
     from app import models  # ensure models are registered
     from app.routes import main 
+    from app.chatbot import chatbot
     app.register_blueprint(main)
     from app.assistant import assistant
     app.register_blueprint(assistant)
@@ -27,6 +28,8 @@ def create_app():
     app.register_blueprint(library)
     from app.swipe import swipe
     app.register_blueprint(swipe)
+
+    app.register_blueprint(chatbot)
 
     from app.cli import register_cli
     register_cli(app)
